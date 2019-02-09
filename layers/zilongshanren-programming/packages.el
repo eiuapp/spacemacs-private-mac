@@ -23,6 +23,7 @@
         flycheck
         nodejs-repl
         (nodejs-repl-eval :location local)
+        (compile-dwim :location local)
         js2-mode
         js2-refactor
         json-mode
@@ -44,7 +45,19 @@
         cider
         ;; editorconfig
         robe
+        exec-path-from-shell
         ))
+
+(defun zilongshanren-programming/init-compile-dwim ()
+  (use-package compile-dwim
+    :commands (compile-dwim-run compile-dwim-compile)
+    :init))
+
+(defun zilongshanren-programming/init-exec-path-from-shell ()
+  (use-package exec-path-from-shell
+    :init
+    (when (memq window-system '(mac ns))
+      (exec-path-from-shell-initialize))))
 
 (defun zilongshanren-programming/post-init-robe ()
   (progn
@@ -237,7 +250,7 @@
       (push '(cider-repl-mode . ("[`'~@]+" "#" "#\\?@?")) lispy-parens-preceding-syntax-alist)
 
       (spacemacs|hide-lighter lispy-mode)
-      (define-key lispy-mode-map (kbd "s-j") 'lispy-splice)
+      (define-key lispy-mode-map (kbd "M-s") 'lispy-splice)
       (define-key lispy-mode-map (kbd "s-k") 'paredit-splice-sexp-killing-backward)
 
       (with-eval-after-load 'cider-repl
@@ -247,6 +260,7 @@
        'minibuffer-setup-hook
        'conditionally-enable-lispy)
       (define-key lispy-mode-map (kbd "s-m") 'lispy-mark-symbol)
+      (define-key lispy-mode-map (kbd "s-u") 'lispy-undo)
       (define-key lispy-mode-map (kbd "s-1") 'lispy-describe-inline)
       (define-key lispy-mode-map (kbd "s-2") 'lispy-arglist-inline))))
 
@@ -281,9 +295,32 @@
 
 (defun zilongshanren-programming/post-init-js2-refactor ()
   (progn
+    
+(defun js2r-toggle-object-property-access-style ()
+  "Toggle js object property access style."
+  (interactive)
+  (js2r--guard)
+  (js2r--wait-for-parse
+   (save-excursion
+     (let ((node (js2-node-at-point)))
+       (if (js2-string-node-p node)
+           (let* ((start (js2-node-abs-pos node))
+                  (end (+ start (js2-node-len node))))
+             (when (memq (char-before start) '(?\[))
+               (save-excursion
+                 (goto-char (-  end 1)) (delete-char 2)
+                 (goto-char (+ start 1)) (delete-char -2) (insert "."))))
+         (let* ((start (js2-node-abs-pos node))
+                (end (+ start (js2-node-len node))))
+           (when (memq (char-before start) '(?.))
+             (save-excursion
+               (goto-char end) (insert "\']")
+               (goto-char start) (delete-char -1) (insert "[\'")))))))))
+
     (spacemacs/set-leader-keys-for-major-mode 'js2-mode
       "r>" 'js2r-forward-slurp
-      "r<" 'js2r-forward-barf)))
+      "r<" 'js2r-forward-barf
+      "r." 'js2r-toggle-object-property-access-style)))
 
 (defun zilongshanren-programming/post-init-js2-mode ()
   (progn

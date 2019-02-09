@@ -24,6 +24,8 @@
     )
   )
 
+
+
 (defun zilongshanren-ui/init-zilong-mode-line ()
   (defun zilongshanren/display-mode-indent-width ()
     (let ((mode-indent-level
@@ -46,22 +48,26 @@
 
   (setq my-flycheck-mode-line
         '(:eval
-          (pcase flycheck-last-status-change
-            ((\` not-checked) nil)
-            ((\` no-checker) (propertize " -" 'face 'warning))
-            ((\` running) (propertize " ✷" 'face 'success))
-            ((\` errored) (propertize " !" 'face 'error))
-            ((\` finished)
-             (let* ((error-counts (flycheck-count-errors flycheck-current-errors))
-                    (no-errors (cdr (assq 'error error-counts)))
-                    (no-warnings (cdr (assq 'warning error-counts)))
-                    (face (cond (no-errors 'error)
-                                (no-warnings 'warning)
-                                (t 'success))))
-               (propertize (format "[%s/%s]" (or no-errors 0) (or no-warnings 0))
-                           'face face)))
-            ((\` interrupted) " -")
-            ((\` suspicious) '(propertize " ?" 'face 'warning)))))
+          (when
+              (and (bound-and-true-p flycheck-mode)
+                   (or flycheck-current-errors
+                       (eq 'running flycheck-last-status-change)))
+            (pcase flycheck-last-status-change
+              ((\` not-checked) nil)
+              ((\` no-checker) (propertize " -" 'face 'warning))
+              ((\` running) (propertize " ✷" 'face 'success))
+              ((\` errored) (propertize " !" 'face 'error))
+              ((\` finished)
+               (let* ((error-counts (flycheck-count-errors flycheck-current-errors))
+                      (no-errors (cdr (assq 'error error-counts)))
+                      (no-warnings (cdr (assq 'warning error-counts)))
+                      (face (cond (no-errors 'error)
+                                  (no-warnings 'warning)
+                                  (t 'success))))
+                 (propertize (format "[%s/%s]" (or no-errors 0) (or no-warnings 0))
+                             'face face)))
+              ((\` interrupted) " -")
+              ((\` suspicious) '(propertize " ?" 'face 'warning))))))
 
   (setq-default mode-line-misc-info
                 (assq-delete-all 'which-func-mode mode-line-misc-info))
@@ -69,11 +75,12 @@
   (setq-default mode-line-format
                 (list
                  " %1"
-                 '(:eval (propertize
-                          (window-number-mode-line)
-                          'face
-                          'font-lock-type-face))
+                 '(:eval (when (bound-and-true-p winum-mode) (propertize
+                                                              (window-number-mode-line)
+                                                              'face
+                                                              'font-lock-type-face)))
                  " "
+                 '(:eval (zilong/modeline--evil-substitute))
                  '(:eval (zilongshanren/update-persp-name))
 
                  "%1 "
@@ -128,7 +135,7 @@
                            minor-mode-alist))
                  " "
                  ;; git info
-                 '(:eval (when (> (window-width) 120)
+                 '(:eval (when (> (window-width) 90)
                            `(vc-mode vc-mode)))
 
                  " "
@@ -137,7 +144,7 @@
                  '(:eval (when (> (window-width) 120)
                            mode-line-misc-info))
 
-                 (mode-line-fill 'mode-line 20)
+                 (mode-line-fill 'mode-line 25)
 
                  '(:eval (zilongshanren/display-mode-indent-width))
                  ;; line and column
@@ -154,7 +161,13 @@
                  ;;                     'help-echo
                  ;;                     (concat (format-time-string "%c; ")
                  ;;                             (emacs-uptime "Uptime:%hh"))))
-                 )))
+                 ))
+
+  ;; remove which func from modeline
+  (setq mode-line-misc-info (cdr mode-line-misc-info))
+  ;; git branch on mode line may have some performance issue
+  ;; (setq auto-revert-check-vc-info t)
+  )
 
 (defun zilongshanren-ui/post-init-diminish ()
   (progn
@@ -271,7 +284,8 @@ This segment overrides the modeline functionality of `org-mode-line-string'."
 
 (defun zilongshanren-ui/post-init-popwin ()
   (progn
-    (push "*zilongshanren/run-current-file output*" popwin:special-display-config)
+    ;FIXME: 
+    ;; (push "*zilongshanren/run-current-file output*" popwin:special-display-config)
     (delete "*Async Shell Command*" popwin:special-display-config)))
 
 (defun zilongshanren-ui/post-init-whitespace ()

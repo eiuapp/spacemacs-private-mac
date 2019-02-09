@@ -188,3 +188,71 @@ Single Capitals as you type."
 (setq backup-by-copying t
       make-backup-files nil
       create-lockfiles nil)
+
+;; (when (and (spacemacs/system-is-mswindows) window-system)
+;;   (setq w32-pipe-read-delay 0.5))
+
+;; FIXME: --vimgrep will break ivy-occur with wgrep
+(setq counsel-async-split-string-re "\r?\n")
+;; (setq counsel-ag-base-command  "ag --vimgrep --nocolor --nogroup %s")
+
+(defvar spacemacs--counsel-commands
+  '(;; --line-number forces line numbers (disabled by default on windows)
+    ;; no --vimgrep because it adds column numbers that wgrep can't handle
+    ;; see https://github.com/syl20bnr/spacemacs/pull/8065
+    ("rg" . "rg  --smart-case --ignore-file '.rgignore' --no-heading --color never --line-number --max-columns 220 %s %S .")
+    ("ag" . "ag --nocolor --nogroup %s %S .")
+    ("pt" . "pt -e --nocolor --nogroup %s %S .")
+    ("ack" . "ack --nocolor --nogroup %s %S .")
+    ("grep" . "grep -nrP %s %S ."))
+  "An alist of search commands and their corresponding commands
+with options to run in the shell.")
+
+;; search chinse must add this line
+;; https://emacs-china.org/t/emacs-helm-ag/6764
+(if (spacemacs/system-is-mswindows)
+    (modify-coding-system-alist 'process "rg" '(utf-8 . chinese-gbk-dos))
+  (modify-coding-system-alist 'process "rg" '(utf-8 . utf-8)))
+
+
+;; https://emacs-china.org/t/advice/7566
+(defun chunyang-advice-remove-button (function)
+  "Add a button to remove advice."
+  (when (get-buffer "*Help*")
+    (with-current-buffer "*Help*"
+      (save-excursion
+        (goto-char (point-min))
+        ;; :around advice: ‘shell-command--shell-command-with-editor-mode’
+        (while (re-search-forward "^:[-a-z]+ advice: [‘'`]\\(.+\\)[’'']$" nil t)
+          (let ((advice (intern-soft (match-string 1))))
+            (when (and advice (fboundp advice))
+              (let ((inhibit-read-only t))
+                (insert " » ")
+                (insert-text-button
+                 "Remove"
+                 'action
+                 ;; In case lexical-binding is off
+                 `(lambda (_)
+                    (message "Removing %s of advice from %s" ',function ',advice)
+                    (advice-remove ',function #',advice)
+                    (revert-buffer nil t))
+                 'follow-link t)))))))))
+
+(advice-add 'describe-function-1 :after #'chunyang-advice-remove-button)
+
+(defun zilong-ag-edit (function)
+  (when (get-buffer "*helm-ag-edit*")
+    (kill-buffer "*helm-ag-edit*"))
+  (if (not (= (count-windows) 2))
+      (progn
+        (split-window-right))))
+
+;; (defun zilong-after-ag-edit (function)
+;;   (ivy-occur-grep-mode))
+
+(advice-add 'helm-ag--edit :before #'zilong-ag-edit)
+;; (advice-add 'helm-ag--edit :after #'zilong-after-ag-edit)
+
+(when (spacemacs/system-is-mswindows)
+  ;; 使用 counsel-git 查找文件的时候，忽略指定后缀的文件
+  (setq counsel-git-cmd "git ls-files --full-name -- \":!:*.js.meta\" \":!:*.meta\""))
