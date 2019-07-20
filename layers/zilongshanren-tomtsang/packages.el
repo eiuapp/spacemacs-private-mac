@@ -27,6 +27,15 @@
     (org :location built-in)
     ox-hugo
     py-autopep8
+    pyim-wbdict
+    pyim-basedict
+    pyim
+
+    sdcv
+    ;; (sdcv-mode :location (recipe
+    ;;                       :fetcher github
+    ;;                       :repo "gucong/emacs-sdcv"))
+
     ;; vmd-mode
     ;; (ox-hugo :location (recipe :fetcher github :repo "kaushalmodi/ox-hugo"))
     ;; (zilongshanren-org :location built-in)

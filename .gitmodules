@@ -1,0 +1,3 @@
+[submodule "snippets"]
+	path = snippets
+	url = git@github.com:eiuapp/snippets-private-win10-tl.git

@@ -144,7 +144,7 @@ values."
    ;; (default t)
    dotspacemacs-elpa-https t
    ;; Maximum allowed time in seconds to contact an ELPA repository.
-   dotspacemacs-elpa-timeout 5
+   dotspacemacs-elpa-timeout 300 
    ;; If non nil then spacemacs will check for updates at startup
    ;; when the current branch is not `develop'. Note that checking for
    ;; new versions works via git commands, thus it calls GitHub services
@@ -169,7 +169,8 @@ values."
    ;; directory. A string value must be a path to an image format supported
    ;; by your Emacs build.
    ;; If the value is nil then no banner is displayed. (default 'official)
-   dotspacemacs-startup-banner 'official
+   dotspacemacs-startup-banner '"~/Pictures/tom/google-logo.png"
+   ;; dotspacemacs-startup-banner 'official
    ;; List of items to show in startup buffer or an association list of
    ;; the form `(list-type . list-size)`. If nil then it is disabled.
    ;; Possible values for list-type are:
@@ -185,7 +186,8 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(solarized-light
+   dotspacemacs-themes '(monokai
+                         solarized-light
                          solarized-dark)
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
@@ -346,6 +348,9 @@ values."
    ;; delete only whitespace for changed lines or `nil' to disable cleanup.
    ;; (default nil)
    dotspacemacs-whitespace-cleanup 'changed
+
+  ;; dotspacemacs-frame-title-format "%t"
+   dotspacemacs-icon-title-format nil
    ))
 
 (defun dotspacemacs/user-init ()
@@ -366,9 +371,31 @@ values."
   (setq warning-minimum-level :error)
   ;; hack for remove purpose mode
   (setq purpose-mode nil)
+
+  ;; (setq js2-include-node-externs t)
+
+  ;; Turn off js2 mode errors & warnings (we lean on eslint/standard)
+  ;; (setq js2-mode-show-parse-errors nil)
+  ;; (setq js2-mode-show-strict-warnings nil)
   )
 
 (defun dotspacemacs/user-config ()
+
+  (defconst macp (eq system-type 'darwin))
+  (message "%s" macp)
+
+  ;; emacspeak
+  (require 'cl)
+  (setq load-path (cons "~/emacs/emacspeak/lisp" load-path))
+  (setq emacspeak-directory "~/emacs/emacspeak")
+  (setq dtk-program "mac")
+  (require 'emacspeak-setup)
+  (require 'mac-voices)
+  (emacspeak-tts-startup-hook)
+  (dtk-set-rate 300 t)
+  
+  (kill-buffer "*spacemacs*")
+
   ;;解决org表格里面中英文对齐的问题
   (when (configuration-layer/layer-usedp 'chinese)
     (when (and (spacemacs/system-is-mac) window-system)
@@ -444,13 +471,14 @@ values."
   (global-display-line-numbers-mode -1)
 
   (defun moon-override-yank-pop (&optional arg)
-      "Delete the region before inserting poped string."
-      (when (and evil-mode (eq 'visual evil-state))
-        (kill-region (region-beginning) (region-end))))
+    "Delete the region before inserting poped string."
+    (when (and evil-mode (eq 'visual evil-state))
+      (kill-region (region-beginning) (region-end))))
 
-(advice-add 'counsel-yank-pop :before #'moon-override-yank-pop)
+  (advice-add 'counsel-yank-pop :before #'moon-override-yank-pop)
 
   ;; (add-hook 'text-mode-hook 'spacemacs/toggle-spelling-checking-on)
+  ;; (add-hook 'js2-mode-hook 'spacemacs/toggle-spelling-checking-on)
   )
 
 (setq custom-file (expand-file-name "custom.el" dotspacemacs-directory))
