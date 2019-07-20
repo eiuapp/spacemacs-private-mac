@@ -75,7 +75,9 @@ values."
      ;; ruby-on-rails
      lua
      html
-     (javascript :variables javascript-backend 'nil)
+     (javascript :variables
+                 node-add-modules-path t
+                 javascript-backend 'nil)
      (typescript :variables
                  typescript-fmt-on-save nil
                  typescript-fmt-tool 'typescript-formatter)
@@ -97,7 +99,10 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(sicp)
+   dotspacemacs-additional-packages '(sicp
+                                      company-tern
+                                      prettier-js
+                                      )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    dotspacemacs-excluded-packages
@@ -117,6 +122,7 @@ values."
                     helm-themes helm-swoop helm-spacemacs-help smeargle
                     ido-vertical-mode flx-ido company-quickhelp
                     window-purpose ivy-purpose helm-purpose spacemacs-purpose-popwin
+		            clojure-cheatsheet
                     )
    dotspacemacs-install-packages 'used-only
    dotspacemacs-delete-orphan-packages t))
