@@ -396,6 +396,31 @@ values."
   
   (kill-buffer "*spacemacs*")
 
+  ;; (global-flycheck-mode t)
+  (add-hook 'js2-mode-hook 'flycheck-mode)
+
+  ;; prettier
+  (eval-after-load 'web-mode
+    '(progn
+       (add-hook 'web-mode-hook #'add-node-modules-path)))
+
+  (require 'prettier-js)
+  (setq prettier-js-command "prettier-eslint_d")
+
+  ;; (require 'company-tern)
+  ;; (require 'company-mode)
+  ;; (add-to-list 'company-backends 'company-tern)
+
+  (require 'auto-complete)
+  (global-auto-complete-mode t)
+  ;; (add-to-list 'ac-modes (js2-mode company-mode tern-mode))
+  (add-to-list 'load-path "~/emacs/tern/emacs/")
+  (autoload 'tern-mode "tern.el" nil t)
+  (add-hook 'js-mode-hook (lambda () (tern-mode t)))
+  (eval-after-load 'tern
+    '(progn
+       (require 'tern-auto-complete)
+       (tern-ac-setup)))
   ;;解决org表格里面中英文对齐的问题
   (when (configuration-layer/layer-usedp 'chinese)
     (when (and (spacemacs/system-is-mac) window-system)
